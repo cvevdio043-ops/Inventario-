@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="manifest" href="manifest.json"><meta name="theme-color" content="#070b14"><link rel="apple-touch-icon" href="icon-192.png"><meta name="apple-mobile-web-app-capable" content="yes"><title>Utilería · Inventario</title>
+<style>
+:root{--bg:#eef2f9;--card:#fff;--tx:#0f1b2d;--mu:#62718a;--bd:#d9e1ef;--ac:#22d3ee;--g:#22c55e;--y:#eab308;--o:#f97316;--r:#ef4444;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#070b14;--card:#0f1627;--tx:#e8f0ff;--mu:#8093b3;--bd:#1c2a45}}
+:root[data-theme="dark"]{--bg:#070b14;--card:#0f1627;--tx:#e8f0ff;--mu:#8093b3;--bd:#1c2a45}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;min-height:100vh;background-image:radial-gradient(900px 400px at 85% -10%,color-mix(in srgb,var(--ac) 22%,transparent),transparent)}
+#app{max-width:820px;margin:auto;padding:16px 14px 110px}
+h1{font-size:22px;margin:4px 0 2px;letter-spacing:.5px}h2{font-size:17px;margin:18px 0 8px}
+.mu{color:var(--mu);font-size:13px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:18px;padding:14px;margin:10px 0;box-shadow:0 0 24px color-mix(in srgb,var(--ac) 8%,transparent)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.big{border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:22px;padding:22px 10px;font-size:15px;font-weight:600;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:8px;transition:.2s}
+.big:active{transform:scale(.96)}.big span{font-size:38px;filter:drop-shadow(0 0 10px var(--ac))}
+.big:hover{border-color:var(--ac)}
+button,input,select,textarea{font:inherit;color:var(--tx)}
+.btn{background:var(--ac);color:#041016;border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
+.btn.s{background:transparent;color:var(--tx);border:1px solid var(--bd)}.btn.d{background:var(--r);color:#fff}
+.btn.sm{padding:5px 10px;font-size:13px}
+input,select,textarea{width:100%;background:var(--bg);border:1px solid var(--bd);border-radius:10px;padding:10px;margin:4px 0 8px}
+label{font-size:12px;color:var(--mu)}
+.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}.row>.fx{flex:none}
+.sp{justify-content:space-between}
+nav{position:fixed;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--card) 90%,transparent);backdrop-filter:blur(14px);border-top:1px solid var(--bd);display:flex;justify-content:space-around;padding:6px 4px calc(6px + env(safe-area-inset-bottom,0px));z-index:5}
+nav button{background:none;border:0;font-size:11px;color:var(--mu);display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;flex:1}
+nav button b{font-size:22px;font-weight:400}nav button.on{color:var(--ac)}
+.bar{height:10px;border-radius:9px;background:var(--bd);overflow:hidden}.bar i{display:block;height:100%;border-radius:9px;transition:.5s}
+.chip{display:inline-block;padding:2px 9px;border-radius:20px;font-size:12px;font-weight:700;color:#fff}
+.cat{border-left:6px solid;padding-left:10px}
+.it{display:flex;gap:8px;align-items:center;padding:9px 0;border-top:1px solid var(--bd)}
+.it:first-of-type{border-top:0}.it>div:first-child{flex:1;min-width:0}
+.q{display:flex;align-items:center;gap:6px}.q button{width:30px;height:30px;border-radius:50%;border:1px solid var(--bd);background:var(--bg);cursor:pointer;font-size:16px}
+#mod{position:fixed;inset:0;background:#0009;display:none;align-items:flex-end;justify-content:center;z-index:10}
+#mod>div{background:var(--card);width:100%;max-width:600px;max-height:90vh;overflow:auto;border-radius:22px 22px 0 0;padding:18px;border:1px solid var(--bd)}
+.sw{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}.sw i{width:34px;height:34px;border-radius:50%;cursor:pointer;border:3px solid transparent}.sw i.on{border-color:var(--tx)}
+svg text{fill:var(--mu);font-size:10px}
+.tag{font-size:11px;color:var(--mu)}
+.pill{font-size:11px;padding:2px 8px;border-radius:12px;border:1px solid var(--bd);color:var(--mu)}
+.kpi{font-size:26px;font-weight:800}
+</style></head><body>
+<div id="app"></div><nav id="nav"></nav><div id="mod"><div id="mb"></div></div>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+// ====== PEGA AQUÍ LA CONFIGURACIÓN DE TU FIREBASE ======
+const FIREBASE_CONFIG={
+  apiKey:"",
+  authDomain:"",
+  projectId:"",
+  storageBucket:"",
+  messagingSenderId:"",
+  appId:""
+};
+// =======================================================
+const COL=['#22d3ee','#a78bfa','#f472b6','#34d399','#fbbf24','#fb7185','#60a5fa','#f97316'];
+const ACC=['#22d3ee','#a78bfa','#f472b6','#34d399','#fbbf24','#60a5fa'];
+const uid=()=>Math.random().toString(36).slice(2,9);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const today=()=>new Date().toISOString().slice(0,10);
+const money=n=>'$'+(+n||0).toLocaleString('es',{minimumFractionDigits:2,maximumFractionDigits:2});
+let S={cats:[],items:[],shop:[],buys:[],life:[],set:{theme:'auto',acc:ACC[0]},backups:[],ts:0};
+let view='home',lper='month',sync='local',ref=null,tmr;
+const $=id=>document.getElementById(id);
+function applyTheme(){const r=document.documentElement;S.set.theme==='auto'?r.removeAttribute('data-theme'):r.setAttribute('data-theme',S.set.theme);r.style.setProperty('--ac',S.set.acc)}
+function save(){S.ts=Date.now();try{localStorage.setItem('utl',JSON.stringify(S))}catch(e){}
+ if(ref){clearTimeout(tmr);tmr=setTimeout(async()=>{try{await ref.set({json:JSON.stringify(S)});sync='ok'}catch(e){sync='err'}hdr()},400)}render()}
+function load(){try{const j=localStorage.getItem('utl');if(j)S={...S,...JSON.parse(j)}}catch(e){}}
+function merge(j){try{const n=JSON.parse(j);if(n.ts>S.ts){S={...S,...n};try{localStorage.setItem('utl',j)}catch(e){}applyTheme();if($('mod').style.display!=='flex')render()}}catch(e){}}
+const dl={save:async({filename,data})=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([data],{type:'application/json'}));a.download=filename;document.body.appendChild(a);a.click();a.remove()}};
+function connect(code){try{if(!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);ref=firebase.firestore().collection('spaces').doc(code);sync='ok';
+ ref.onSnapshot(s=>{if(s.exists){const d=s.data();if(d&&d.json)merge(d.json)}else if(S.ts){ref.set({json:JSON.stringify(S)}).catch(()=>{})}hdr()},()=>{sync='err';hdr()})}catch(e){sync='err'}hdr()}
+function askCode(){mod(`<h2>🔑 Código de tu utilería</h2><div class="mu">Escribe el código que compartieron o crea uno nuevo. Quien tenga el mismo código verá los mismos datos.</div>${F('c','Código','')}<div class="row"><button class="btn s" id="nw">Crear nuevo</button><button class="btn" id="ok">Entrar</button></div>`);
+ const go=c=>{c=c.trim();if(c.length<8)return alert('El código debe tener al menos 8 caracteres');try{localStorage.setItem('utl_code',c)}catch(e){}if(ref)location.reload();else{$('mod').style.display='none';connect(c);render()}};
+ $('ok').onclick=()=>go($('f_c').value);$('nw').onclick=()=>go(uid()+uid()+uid()+uid())}
+async function init(){load();applyTheme();render();if(!FIREBASE_CONFIG.apiKey||typeof firebase==='undefined'){sync='local';return hdr()}
+ let code='';try{code=localStorage.getItem('utl_code')||''}catch(e){}if(!code)return askCode();connect(code)}
+const missing=()=>S.items.filter(i=>(+i.min||0)>(+i.qty||0)).map(i=>({id:i.id,name:i.name,need:(+i.min)-(+i.qty),unit:i.unit||''}));
+function life(l){const a=new Date(l.start).getTime(),b=new Date(l.end).getTime(),n=Date.now();const tot=Math.max(b-a,1);const p=Math.max(0,Math.min(1,(b-n)/tot));const d=Math.ceil((b-n)/864e5);
+ const c=p>.6?'var(--g)':p>.35?'var(--y)':p>.15?'var(--o)':'var(--r)';const t=d<0?'Venció hace '+(-d)+' d':d===0?'Vence hoy':'Quedan '+d+' d';return{p,c,t,d}}
+function health(){const it=S.items.filter(i=>+i.min>0);if(!it.length)return null;return Math.round(it.reduce((s,i)=>s+Math.min(1,(+i.qty||0)/+i.min),0)/it.length*100)}
+function donut(p,c,sz=110){const r=sz/2-10,L=2*Math.PI*r;return `<svg width="${sz}" height="${sz}"><circle cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="var(--bd)" stroke-width="10"/><circle cx="${sz/2}" cy="${sz/2}" r="${r}" fill="none" stroke="${c}" stroke-width="10" stroke-linecap="round" stroke-dasharray="${L*p/100} ${L}" transform="rotate(-90 ${sz/2} ${sz/2})"/><text x="50%" y="54%" text-anchor="middle" style="font-size:22px;font-weight:800;fill:var(--tx)">${p}%</text></svg>`}
+function hdr(){const e=$('sy');if(e)e.textContent=sync==='ok'?'☁ Sincronizado':sync==='err'?'⚠ Sin conexión (guardado local)':'💾 Solo en este dispositivo (falta configurar Firebase)'}
+const TABS=[['home','🏠','Inicio'],['inv','📦','Inventario'],['shop','🛒','Compras'],['gas','💰','Gastos'],['life','⏳','Vida útil']];
+function render(){$('nav').innerHTML=TABS.map(t=>`<button class="${view===t[0]?'on':''}" data-go="${t[0]}"><b>${t[1]}</b>${t[2]}</button>`).join('');
+ const v={home,inv,shop,gas,life:lifeV,set:setV}[view]();$('app').innerHTML=`<div class="row sp"><div><h1>⚡ UTILERÍA</h1><div class="mu" id="sy"></div></div><button class="btn s fx" data-go="set">⚙️</button></div>`+v;hdr()}
+function home(){const m=missing(),h=health(),ex=S.life.map(l=>({l,...life(l)})).filter(x=>x.p<=.15);const mm=today().slice(0,7);const sp=S.buys.filter(b=>b.date.startsWith(mm)).reduce((s,b)=>s+b.items.reduce((a,i)=>a+i.qty*i.price,0),0);
+ return `<div class="grid" style="margin-top:12px">${TABS.slice(1).map(t=>`<button class="big" data-go="${t[0]}"><span>${t[1]}</span>${t[2]}</button>`).join('')}<button class="big" data-go="set"><span>⚙️</span>Ajustes y copias</button></div>
+ <div class="card row"><div class="fx">${donut(h??0,h==null?'var(--bd)':h>70?'var(--g)':h>40?'var(--o)':'var(--r)')}</div><div><div class="mu">Salud del inventario</div><div class="kpi">${S.items.length} <span class="mu">artículos</span></div><div class="mu">${m.length?`⚠ ${m.length} por reponer`:'✓ Todo en stock'}</div></div></div>
+ <div class="grid"><div class="card"><div class="mu">Gasto este mes</div><div class="kpi">${money(sp)}</div></div><div class="card"><div class="mu">Vida útil crítica</div><div class="kpi" style="color:${ex.length?'var(--r)':'var(--g)'}">${ex.length}</div></div></div>
+ ${ex.length?`<div class="card"><b>⏳ Atención</b>${ex.map(x=>`<div class="mu">• ${esc(x.l.name)} — ${x.t}</div>`).join('')}</div>`:''}`}
+function inv(){let h=`<div class="row" style="margin:12px 0"><button class="btn" data-a="cat">+ Sección</button><button class="btn s" data-a="item" ${S.cats.length?'':'disabled'}>+ Artículo</button></div>`;
+ if(!S.cats.length)h+=`<div class="card mu">Crea tu primera sección (ej. Papeles, Toallas, Limpieza) con el nombre y color que quieras.</div>`;
+ S.cats.forEach(c=>{const its=S.items.filter(i=>i.cat===c.id);h+=`<div class="card cat" style="border-left-color:${c.color}"><div class="row sp"><b style="color:${c.color}">${esc(c.name)}</b><span class="fx"><button class="btn s sm" data-a="cat" data-id="${c.id}">✏️</button></span></div>${its.length?'':'<div class="mu">Sin artículos</div>'}`+its.map(i=>{const lo=+i.qty<+i.min,pc=+i.min?Math.min(100,i.qty/i.min*100):100;return `<div class="it"><div data-a="item" data-id="${i.id}"><b>${esc(i.name)}</b> ${lo?'<span class="chip" style="background:var(--r)">Repón</span>':''}<div class="tag">${esc(i.desc)} ${i.spec?'· '+esc(i.spec):''}</div><div class="bar" style="margin-top:5px"><i style="width:${pc}%;background:${lo?'var(--r)':c.color}"></i></div><div class="tag">Hay ${i.qty} / Debe haber ${i.min} ${esc(i.unit)}</div></div><div class="q"><button data-q="-1" data-id="${i.id}">−</button><b>${i.qty}</b><button data-q="1" data-id="${i.id}">+</button></div></div>`}).join('')+`</div>`});
+ if(S.items.length){const tot=S.cats.map(c=>({n:c.name,c:c.color,v:S.items.filter(i=>i.cat===c.id).length})).filter(x=>x.v);h+=`<h2>Artículos por sección</h2><div class="card">${tot.map(x=>`<div class="row" style="margin:5px 0"><span class="fx" style="width:90px;font-size:12px">${esc(x.n)}</span><div class="bar"><i style="width:${x.v/Math.max(...tot.map(t=>t.v))*100}%;background:${x.c}"></i></div><span class="fx tag">${x.v}</span></div>`).join('')}</div>`}return h}
+function shop(){const m=missing();return `<h2>🛒 Lista de compras</h2><div class="mu">Se calcula sola: lo que debe haber menos lo que hay.</div>
+ <div class="card"><b>Por reponer del inventario</b>${m.length?m.map(x=>`<div class="it"><div>${esc(x.name)}</div><span class="pill">Faltan ${x.need} ${esc(x.unit)}</span></div>`).join(''):'<div class="mu">Nada por reponer ✓</div>'}</div>
+ <div class="card"><div class="row sp"><b>Otros elementos</b><span class="fx"><button class="btn sm" data-a="sadd">+ Añadir</button></span></div>${S.shop.map(x=>`<div class="it"><div>${esc(x.name)} <span class="tag">x${x.qty}</span></div><button class="btn s sm fx" data-sdel="${x.id}">✕</button></div>`).join('')||'<div class="mu">Sin elementos extra</div>'}</div>
+ <div class="row"><button class="btn" data-a="wa">📲 Enviar por WhatsApp</button><button class="btn s" data-a="buy">✅ Registrar compra</button></div>`}
+function waText(){const m=missing();let t='🛒 *Lista de compras – Utilería*\n';m.forEach(x=>t+=`• ${x.name}: ${x.need} ${x.unit}\n`);S.shop.forEach(x=>t+=`• ${x.name}: ${x.qty}\n`);return t}
+const tot=b=>b.items.reduce((a,i)=>a+i.qty*i.price,0);
+function lineChart(){const N=lper==='week'?8:lper==='month'?12:5;const now=new Date();const keys=[],lab=[];
+ for(let i=N-1;i>=0;i--){const d=new Date(now);if(lper==='week'){d.setDate(d.getDate()-7*i);const dd=(d.getDay()+6)%7;d.setDate(d.getDate()-dd);keys.push(d.toISOString().slice(0,10));lab.push(d.getDate()+'/'+(d.getMonth()+1))}else if(lper==='month'){d.setDate(1);d.setMonth(d.getMonth()-i);keys.push(d.toISOString().slice(0,7));lab.push(d.toLocaleDateString('es',{month:'short'}))}else{keys.push(String(now.getFullYear()-i));lab.push(String(now.getFullYear()-i))}}
+ const kf=ds=>{const d=new Date(ds+'T12:00:00');if(lper==='week'){d.setDate(d.getDate()-(d.getDay()+6)%7);return d.toISOString().slice(0,10)}return lper==='month'?ds.slice(0,7):ds.slice(0,4)};
+ const P={};S.buys.forEach(b=>b.items.forEach(i=>{const n=i.name.toLowerCase();P[n]=P[n]||{n:i.name,b:{},t:0};const k=kf(b.date);P[n].b[k]=(P[n].b[k]||0)+i.qty;P[n].t+=i.qty}));
+ const top=Object.values(P).sort((a,b)=>b.t-a.t).slice(0,4);if(!top.length)return '<div class="mu">Registra compras para ver la gráfica.</div>';
+ const mx=Math.max(1,...top.flatMap(p=>keys.map(k=>p.b[k]||0)));const W=320,H=140,x=i=>20+i*(W-30)/(N-1),y=v=>H-18-v/mx*(H-30);
+ return `<svg viewBox="0 0 ${W} ${H}" width="100%"><line x1="20" x2="${W-10}" y1="${H-18}" y2="${H-18}" stroke="var(--bd)"/>${top.map((p,j)=>`<polyline fill="none" stroke="${COL[j]}" stroke-width="2.5" stroke-linejoin="round" points="${keys.map((k,i)=>x(i)+','+y(p.b[k]||0)).join(' ')}"/>${keys.map((k,i)=>`<circle cx="${x(i)}" cy="${y(p.b[k]||0)}" r="2.8" fill="${COL[j]}"/>`).join('')}`).join('')}${lab.map((l,i)=>`<text x="${x(i)}" y="${H-5}" text-anchor="middle">${l}</text>`).join('')}<text x="2" y="12">${mx}</text></svg><div>${top.map((p,j)=>`<span class="pill" style="margin-right:4px"><b style="color:${COL[j]}">●</b> ${esc(p.n)}</span>`).join('')}</div>`}
+function gas(){const mk=today().slice(0,7);const ms={};S.buys.forEach(b=>ms[b.date.slice(0,7)]=(ms[b.date.slice(0,7)]||0)+tot(b));
+ const ks=Object.keys(ms).sort().slice(-6),mx=Math.max(1,...ks.map(k=>ms[k]));const cur=S.buys.filter(b=>b.date.startsWith(mk)).sort((a,b)=>b.date.localeCompare(a.date));
+ const P={};S.buys.forEach(b=>b.items.forEach(i=>{const n=i.name.toLowerCase();P[n]=P[n]||{n:i.name,s:0,d:new Set()};P[n].s+=i.qty*i.price;P[n].d.add(b.date)}));
+ const tp=Object.values(P).sort((a,b)=>b.s-a.s).slice(0,6),tm=Math.max(1,...tp.map(p=>p.s));
+ const fr=p=>{const d=[...p.d].sort();if(d.length<2)return '1 compra';const g=(new Date(d.at(-1))-new Date(d[0]))/864e5/(d.length-1);return 'cada ~'+Math.round(g)+' días'};
+ return `<div class="row sp"><h2>💰 Gastos</h2><span class="fx"><button class="btn" data-a="buy">+ Nueva compra</button></span></div>
+ <div class="card"><div class="mu">Total del mes</div><div class="kpi">${money(ms[mk]||0)}</div><svg viewBox="0 0 320 110" width="100%">${ks.map((k,i)=>{const h=ms[k]/mx*80,w=320/ks.length;return `<rect x="${i*w+w*.2}" y="${90-h}" width="${w*.6}" height="${h}" rx="6" fill="${k===mk?'var(--ac)':'var(--bd)'}"/><text x="${i*w+w/2}" y="104" text-anchor="middle">${k.slice(5)}/${k.slice(2,4)}</text><text x="${i*w+w/2}" y="${85-h}" text-anchor="middle">${Math.round(ms[k])}</text>`}).join('')}</svg></div>
+ <div class="card"><b>¿En qué se gasta más?</b>${tp.map((p,i)=>`<div style="margin:8px 0"><div class="row sp"><span>${esc(p.n)}</span><span class="tag fx">${money(p.s)} · ${fr(p)}</span></div><div class="bar"><i style="width:${p.s/tm*100}%;background:${COL[i]}"></i></div></div>`).join('')||'<div class="mu">Aún sin compras</div>'}</div>
+ <div class="card"><div class="row sp"><b>Productos más frecuentes</b><select class="fx" style="width:auto;margin:0" data-per>${[['week','Semana'],['month','Mes'],['year','Año']].map(o=>`<option value="${o[0]}" ${lper===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select></div>${lineChart()}</div>
+ <h2>Compras de este mes</h2>${cur.map(b=>`<div class="card"><div class="row sp"><b>${b.date}</b><b>${money(tot(b))}</b></div>${b.items.map(i=>`<div class="tag">${i.qty} × ${esc(i.name)} — ${money(i.price)}</div>`).join('')}<button class="btn s sm" style="margin-top:6px" data-bdel="${b.id}">Eliminar</button></div>`).join('')||'<div class="mu">Sin compras este mes</div>'}`}
+function lifeV(){const L=S.life.map(l=>({l,...life(l)})).sort((a,b)=>a.p-b.p);return `<div class="row sp"><h2>⏳ Vida útil</h2><span class="fx"><button class="btn" data-a="life">+ Material</button></span></div>
+ <div class="mu">Verde: queda bastante · Amarillo: mitad · Naranja: queda poco · Rojo: se acabó.</div>
+ ${L.map(x=>`<div class="card" data-a="life" data-id="${x.l.id}"><div class="row sp"><b>${esc(x.l.name)} <span class="tag">x${x.l.qty}</span></b><span class="chip" style="background:${x.c}">${x.t}</span></div><div class="bar" style="margin:8px 0"><i style="width:${x.p*100}%;background:${x.c}"></i></div><div class="tag">${x.l.start} → ${x.l.end} · ${Math.round(x.p*100)}% restante</div></div>`).join('')||'<div class="card mu">Añade escobas, trapeadores, etc.</div>'}`}
+function setV(){return `<h2>⚙️ Ajustes</h2><div class="card"><b>Apariencia</b><div class="row" style="margin-top:8px">${[['auto','Auto'],['light','Claro'],['dark','Oscuro']].map(o=>`<button class="btn ${S.set.theme===o[0]?'':'s'}" data-th="${o[0]}">${o[1]}</button>`).join('')}</div><div class="mu" style="margin-top:10px">Color de énfasis</div><div class="sw">${ACC.map(c=>`<i class="${S.set.acc===c?'on':''}" style="background:${c}" data-ac="${c}"></i>`).join('')}<input type="color" value="${S.set.acc}" data-ac2 style="width:44px;padding:0;height:34px"></div></div>
+ <div class="card"><b>Sincronización</b><div class="mu">Código compartido (pásaselo a tu amiga):</div><div class="kpi" style="font-size:16px;word-break:break-all">${esc(localStorage.getItem('utl_code')||'— sin configurar —')}</div><button class="btn s sm" style="margin-top:8px" data-a="code">Cambiar código</button></div>
+ <div class="card"><b>Copias de seguridad</b><div class="mu">Los datos se comparten entre quienes usen el mismo código.</div><div class="row" style="margin-top:8px;flex-wrap:wrap"><button class="btn" data-a="bk">💾 Guardar copia</button><button class="btn s" data-a="exp">⬇ Exportar</button><button class="btn s" data-a="imp">⬆ Importar</button></div>
+ ${S.backups.map((b,i)=>`<div class="it"><div class="tag">${new Date(b.t).toLocaleString('es')}</div><button class="btn s sm fx" data-rest="${i}">Restaurar</button></div>`).join('')}</div>`}
+const mod=(h)=>{$('mb').innerHTML=h;$('mod').style.display='flex'};const close=()=>{$('mod').style.display='none';render()};
+const F=(id,l,v='',t='text')=>`<label>${l}</label><input id="f_${id}" type="${t}" value="${esc(v)}">`;const g=id=>$('f_'+id).value.trim();
+const foot=(ok,del='')=>`<div class="row" style="margin-top:8px"><button class="btn s" data-x>Cancelar</button>${del}<button class="btn" id="ok">Guardar</button></div>`;
+function modal(h,fn){mod(h);$('ok').onclick=()=>{if(fn()!==false)close()}}
+const A={
+ code(){askCode()},
+ cat(id){const c=S.cats.find(x=>x.id===id)||{name:'',color:COL[S.cats.length%8]};modal(`<h2>${id?'Editar':'Nueva'} sección</h2>${F('n','Nombre',c.name)}${F('c','Color',c.color,'color')}${foot(0,id?`<button class="btn d" id="dl">Borrar</button>`:'')}`,()=>{if(!g('n'))return false;if(id)Object.assign(c,{name:g('n'),color:g('c')});else S.cats.push({id:uid(),name:g('n'),color:g('c')});save()});if(id)$('dl').onclick=()=>{if(confirm('¿Borrar sección y sus artículos?')){S.cats=S.cats.filter(x=>x.id!==id);S.items=S.items.filter(i=>i.cat!==id);save();close()}}},
+ item(id){const i=S.items.find(x=>x.id===id)||{name:'',cat:S.cats[0].id,qty:0,min:1,unit:'',desc:'',spec:''};modal(`<h2>${id?'Editar':'Nuevo'} artículo</h2>${F('n','Nombre',i.name)}<label>Sección</label><select id="f_c">${S.cats.map(c=>`<option value="${c.id}" ${c.id===i.cat?'selected':''}>${esc(c.name)}</option>`).join('')}</select><div class="row"><div>${F('q','Cantidad actual',i.qty,'number')}</div><div>${F('m','Cantidad en stock (debe haber)',i.min,'number')}</div></div>${F('u','Unidad (rollos, cajas…)',i.unit)}${F('d','Descripción',i.desc)}${F('s','Especificaciones',i.spec)}${foot(0,id?`<button class="btn d" id="dl">Borrar</button>`:'')}`,()=>{if(!g('n'))return false;const o={name:g('n'),cat:g('c'),qty:+g('q')||0,min:+g('m')||0,unit:g('u'),desc:g('d'),spec:g('s')};if(id)Object.assign(i,o);else S.items.push({id:uid(),...o});save()});if(id)$('dl').onclick=()=>{S.items=S.items.filter(x=>x.id!==id);save();close()}},
+ sadd(){modal(`<h2>Añadir a la lista</h2>${F('n','Elemento')}${F('q','Cantidad',1,'number')}${foot()}`,()=>{if(!g('n'))return false;S.shop.push({id:uid(),name:g('n'),qty:+g('q')||1});save()})},
+ wa(){const t=waText();mod(`<h2>Mensaje de WhatsApp</h2><textarea id="f_t" rows="9">${esc(t)}</textarea><div class="row"><button class="btn s" data-x>Cerrar</button><button class="btn s" id="cp">Copiar</button><button class="btn" id="ok">Abrir WhatsApp</button></div>`);$('ok').onclick=()=>window.open('https://wa.me/?text='+encodeURIComponent($('f_t').value),'_blank');$('cp').onclick=()=>{$('f_t').select();try{navigator.clipboard.writeText($('f_t').value)}catch(e){document.execCommand('copy')}$('cp').textContent='¡Copiado!'}},
+ buy(){const pre=missing().map(m=>({id:m.id,name:m.name,qty:m.need,price:''}));const lines=pre.length?pre:[{id:'',name:'',qty:1,price:''}];
+  const row=l=>`<div class="card bl"><select class="bi"><option value="">— Otro / nuevo —</option>${S.items.map(i=>`<option value="${i.id}" ${i.id===l.id?'selected':''}>${esc(i.name)}</option>`).join('')}</select><input class="bn" placeholder="Nombre" value="${esc(l.name)}"><div class="row"><input class="bq" type="number" placeholder="Cant." value="${l.qty}"><input class="bp" type="number" step="0.01" placeholder="Precio c/u" value="${l.price}"></div></div>`;
+  mod(`<h2>Registrar compra</h2>${F('d','Fecha',today(),'date')}<div id="bls">${lines.map(row).join('')}</div><button class="btn s sm" id="addl">+ Línea</button>${foot()}`);
+  $('addl').onclick=()=>$('bls').insertAdjacentHTML('beforeend',row({id:'',name:'',qty:1,price:''}));
+  $('mb').onchange=e=>{if(e.target.classList.contains('bi')){const it=S.items.find(i=>i.id===e.target.value);if(it)e.target.parentNode.querySelector('.bn').value=it.name}};
+  $('ok').onclick=()=>{const its=[...document.querySelectorAll('.bl')].map(r=>({id:r.querySelector('.bi').value,name:r.querySelector('.bn').value.trim(),qty:+r.querySelector('.bq').value||0,price:+r.querySelector('.bp').value||0})).filter(x=>x.name&&x.qty>0);if(!its.length)return;
+   its.forEach(x=>{const it=S.items.find(i=>i.id===x.id);if(it)it.qty=(+it.qty||0)+x.qty});S.buys.push({id:uid(),date:g('d')||today(),items:its.map(x=>({name:x.name,qty:x.qty,price:x.price}))});S.shop=[];view='gas';save();close()}},
+ life(id){const l=S.life.find(x=>x.id===id)||{name:'',qty:1,start:today(),end:''};modal(`<h2>${id?'Editar':'Nuevo'} material</h2>${F('n','Nombre (escoba, trapeador…)',l.name)}${F('q','Cantidad',l.qty,'number')}${F('s','Inicio de uso',l.start,'date')}${F('e','Fin estimado de vida útil',l.end,'date')}<div class="mu">O en lugar de fecha fin, indica la duración:</div><div class="row"><input id="f_dn" type="number" placeholder="Duración"><select id="f_du"><option value="m">meses</option><option value="d">días</option></select></div>${foot(0,id?`<button class="btn d" id="dl">Borrar</button>`:'')}`,()=>{if(!g('n'))return false;let e=g('e');const n=+g('dn');if(n>0){const d=new Date(g('s')+'T12:00:00');$('f_du').value==='m'?d.setMonth(d.getMonth()+n):d.setDate(d.getDate()+n);e=d.toISOString().slice(0,10)}if(!e||!g('s'))return false;const o={name:g('n'),qty:+g('q')||1,start:g('s'),end:e};if(id)Object.assign(l,o);else S.life.push({id:uid(),...o});save()});if(id)$('dl').onclick=()=>{S.life=S.life.filter(x=>x.id!==id);save();close()}},
+ bk(){const c={...S};c.backups=[];S.backups.unshift({t:Date.now(),d:JSON.stringify(c)});S.backups=S.backups.slice(0,3);save()},
+ async exp(){const c={...S,backups:[]};const data=JSON.stringify(c,null,1),fn='utileria-'+today()+'.json';if(dl){try{await dl.save({filename:fn,data});return}catch(e){if(e&&e.code==='declined')return}}
+  mod(`<h2>Exportar</h2><div class="mu">Copia este texto y guárdalo.</div><textarea id="f_t" rows="8">${esc(data)}</textarea><div class="row"><button class="btn s" data-x>Cerrar</button><button class="btn" id="cp">Copiar</button></div>`);$('cp').onclick=()=>{$('f_t').select();try{navigator.clipboard.writeText(data)}catch(e){document.execCommand('copy')}$('cp').textContent='¡Copiado!'}},
+ imp(){mod(`<h2>Importar copia</h2><div class="mu">Reemplaza los datos actuales.</div><input type="file" id="f_f" accept=".json,application/json"><div class="mu">o pega el texto:</div><textarea id="f_t" rows="5"></textarea><div class="row"><button class="btn s" data-x>Cancelar</button><button class="btn" id="ok">Importar</button></div>`);$('f_f').onchange=e=>{const r=new FileReader();r.onload=()=>$('f_t').value=r.result;r.readAsText(e.target.files[0])};
+  $('ok').onclick=()=>{try{const n=JSON.parse($('f_t').value);if(!n.cats||!n.items)throw 0;S={...S,...n,backups:S.backups};applyTheme();save();close()}catch(e){alert('Archivo no válido')}}}
+};
+document.addEventListener('click',e=>{const t=e.target.closest('[data-go],[data-a],[data-q],[data-x],[data-sdel],[data-bdel],[data-th],[data-ac],[data-rest]');if(!t){if(e.target.id==='mod')close();return}const d=t.dataset;
+ if(d.x!==undefined)return close();if(d.go){view=d.go;return render()}
+ if(d.q){const i=S.items.find(x=>x.id===d.id);i.qty=Math.max(0,(+i.qty||0)+ +d.q);return save()}
+ if(d.sdel){S.shop=S.shop.filter(x=>x.id!==d.sdel);return save()}
+ if(d.bdel){if(confirm('¿Eliminar esta compra? (no revierte el inventario)')){S.buys=S.buys.filter(x=>x.id!==d.bdel);save()}return}
+ if(d.th){S.set.theme=d.th;applyTheme();return save()}
+ if(d.ac){S.set.acc=d.ac;applyTheme();return save()}
+ if(d.rest!==undefined){if(confirm('¿Restaurar esta copia?')){const b=S.backups;S={...S,...JSON.parse(b[d.rest].d),backups:b};applyTheme();save()}return}
+ if(d.a)A[d.a](d.id)});
+document.addEventListener('change',e=>{if(e.target.dataset.per!==undefined){lper=e.target.value;render()}if(e.target.dataset.ac2!==undefined){S.set.acc=e.target.value;applyTheme();save()}});
+init();
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+</script></body></html>
